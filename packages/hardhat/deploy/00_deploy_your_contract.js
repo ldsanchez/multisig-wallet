@@ -15,18 +15,29 @@ const localChainId = "31337";
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const chainId = await getChainId();
+  // const chainId = await getChainId();
 
-  await deploy("YourContract", {
+  await deploy("MultisigWalletFactory", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
     // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+    // args: [["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1 ],
     log: true,
     waitConfirmations: 5,
   });
 
+  // await deploy("MultisigWallet", {
+  //   // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+  //   from: deployer,
+  //   // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+  //   args: [["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1, deployer],
+  //   value: ethers.utils.parseEther("10"),
+  //   log: true,
+  //   waitConfirmations: 5,
+  // });
+
   // Getting a previously deployed contract
-  const YourContract = await ethers.getContract("YourContract", deployer);
+  // const MultisigWallet = await ethers.getContract("MultisigWallet", deployer);
   /*  await YourContract.setPurpose("Hello");
   
     To take ownership of yourContract using the ownable library uncomment next line and add the 
@@ -76,4 +87,4 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //   console.error(error);
   // }
 };
-module.exports.tags = ["YourContract"];
+module.exports.tags = ["MultisigWallet", "MultisigWalletFactory"];
