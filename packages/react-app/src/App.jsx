@@ -29,9 +29,10 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, ExampleUI, Hints, Subgraph } from "./views";
+// import { Home, ExampleUI, Hints, Subgraph } from "./views";
+import { Home, ExampleUI, Hints, Subgraph, MultisigWallet } from "./views";
 import { useStaticJsonRPC } from "./hooks";
-import CreateMultisigWalletModal from "./components/CreateMultisigWalletModal";
+// import CreateMultisigWalletModal from "./components/CreateMultisigWalletModal";
 
 const { ethers } = require("ethers");
 /*
@@ -263,6 +264,9 @@ function App(props) {
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
         </Menu.Item>
+        <Menu.Item key="/multisigwallet">
+          <Link to="/multisigwallet">Multisig Wallet</Link>
+        </Menu.Item>
         <Menu.Item key="/createmultisig">
           <Link to="/createmultisig">Create Multisig</Link>
         </Menu.Item>
@@ -288,8 +292,8 @@ function App(props) {
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
           <Home yourLocalBalance={yourLocalBalance} readContracts={readContracts} />
         </Route>
-        <Route exact path="/createmultisig">
-          <CreateMultisigWalletModal
+        <Route exact path="/multisigwallet">
+          <MultisigWallet
             price={price}
             selectedChainId={selectedChainId}
             mainnetProvider={mainnetProvider}
@@ -301,6 +305,19 @@ function App(props) {
             setIsCreateModalVisible={setIsCreateModalVisible}
           />
         </Route>
+        {/* <Route exact path="/createmultisig">
+          <CreateMultisigWalletModal
+            price={price}
+            selectedChainId={selectedChainId}
+            mainnetProvider={mainnetProvider}
+            address={address}
+            tx={tx}
+            writeContracts={writeContracts}
+            contractName={"MultisigWalletFactory"}
+            isCreateModalVisible={isCreateModalVisible}
+            setIsCreateModalVisible={setIsCreateModalVisible}
+          />
+        </Route> */}
         <Route exact path="/debug">
           {/*
                 🎛 this scaffolding is full of commonly used components

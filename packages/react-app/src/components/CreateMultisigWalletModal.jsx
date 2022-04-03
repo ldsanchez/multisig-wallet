@@ -18,20 +18,22 @@ export default function CreateMultisigWalletModal({
   setIsCreateModalVisible,
 }) {
 
-  // Transaction State
+  // Transaction status State
+  const [pendingCreate, setPendingCreate] = useState(false);
   const [txSent, setTxSent] = useState(false);
   const [txError, setTxError] = useState(false);
   const [txSuccess, setTxSuccess] = useState(false);
 
+  // Transaction arguments State
   const [amount, setAmount] = useState("0");
   const [owners, setOwners] = useState([""]);
-
-  const [pendingCreate, setPendingCreate] = useState(false);
   const [signaturesRequired, setSignaturesRequired] = useState(false);
 
+  // Set the first owner as the connected wallet
   useEffect(() => {
     if (address) {
-      setOwners([address, ""]);
+      // setOwners([address, ""]);
+      setOwners([address]);
     }
   }, [address]);
 
@@ -40,7 +42,7 @@ export default function CreateMultisigWalletModal({
   };
 
   const addOwnerField = () => {
-    const newOwners = [...owners, ''];
+    const newOwners = [...owners, ""];
     setOwners(newOwners);
   };
 
@@ -70,7 +72,7 @@ export default function CreateMultisigWalletModal({
     let valid = true;
 
     if (signaturesRequired > owners.length) {
-      console.log("Validation error: signaturesRequired is greather than number of owners.");
+      console.log("Validation error: signatures required is greather than number of owners.");
       valid = false;
     }
 
@@ -78,7 +80,7 @@ export default function CreateMultisigWalletModal({
       let err;
       if (!owner) {
         err = "Required Input";
-      } else if (owners.slice(0, index).some((o) => o === owner)) {
+      } else if (owners.slice(0, index).some(o => o === owner)) {
         err = "Duplicate Owner";
       } else if (!ethers.utils.isAddress(owner)) {
         err = "Bad format";
@@ -99,7 +101,7 @@ export default function CreateMultisigWalletModal({
 
       if (!validateFields()) {
         setPendingCreate(false);
-        throw new Error("Field validation failed.");
+        throw "Field validation failed.";
       }
 
       tx(
@@ -138,6 +140,16 @@ export default function CreateMultisigWalletModal({
       console.log("CREATE MUTLI-SIG SUBMIT FAILED: ", e);
     }
   };
+
+  // const handleSubmit = async () => {
+  //   try {
+  //     await writeContracts[contractName].create(selectedChainId, owners, signaturesRequired, {
+  //       value: ethers.utils.parseEther("" + parseFloat(amount).toFixed(12)),
+  //     });
+  //   } catch (error) {
+  //     throw new Error("No se pudo ejecutar la creacion");
+  //   }
+  // };
 
   const handleCancel = () => {
     setIsCreateModalVisible(false);
