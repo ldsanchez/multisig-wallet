@@ -12,10 +12,31 @@ const localChainId = "31337";
 //     }, ms)
 //   );
 
+
+// module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
+//   const { deploy } = deployments;
+//   const { deployer } = await getNamedAccounts();
+//   const Factory = await ethers.getContractFactory("MultisigWalletFactory");
+//   const factory = await Factory.deploy({
+//     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
+//     from: deployer,
+//     // args: [ "Hello", ethers.utils.parseEther("1.5") ],
+//     // args: [["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1 ],
+//     log: true,
+//     waitConfirmations: 5,
+//   });
+
+//   await factory.deployed();
+
+//   console.log("factory deployed to:", factory.address);
+
+
+// };
+
 module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  // const chainId = await getChainId();
+  //const chainId = await getChainId();
 
   await deploy("MultisigWalletFactory", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
@@ -30,7 +51,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   //   // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
   //   from: deployer,
   //   // args: [ "Hello", ethers.utils.parseEther("1.5") ],
-  //   args: [["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1, deployer],
+  //   args: [chainId, ["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1, deployer],
   //   value: ethers.utils.parseEther("10"),
   //   log: true,
   //   waitConfirmations: 5,

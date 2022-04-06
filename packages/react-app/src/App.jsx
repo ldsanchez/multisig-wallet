@@ -267,9 +267,9 @@ function App(props) {
         <Menu.Item key="/multisigwallet">
           <Link to="/multisigwallet">Multisig Wallet</Link>
         </Menu.Item>
-        <Menu.Item key="/createmultisig">
+        {/* <Menu.Item key="/createmultisig">
           <Link to="/createmultisig">Create Multisig</Link>
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
@@ -297,12 +297,17 @@ function App(props) {
             price={price}
             selectedChainId={selectedChainId}
             mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
             address={address}
             tx={tx}
             writeContracts={writeContracts}
+            readContracts={readContracts}
             contractName={"MultisigWalletFactory"}
             isCreateModalVisible={isCreateModalVisible}
             setIsCreateModalVisible={setIsCreateModalVisible}
+            DEBUG={DEBUG}
+            blockExplorer={blockExplorer}
+            userSigner={userSigner}
           />
         </Route>
         {/* <Route exact path="/createmultisig">
@@ -327,15 +332,6 @@ function App(props) {
 
           <Contract
             name="MultisigWalletFactory"
-            price={price}
-            signer={userSigner}
-            provider={localProvider}
-            address={address}
-            blockExplorer={blockExplorer}
-            contractConfig={contractConfig}
-          />
-          <Contract
-            name="MultisigWallet"
             price={price}
             signer={userSigner}
             provider={localProvider}

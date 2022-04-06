@@ -100,4 +100,5 @@
     "watch": "node ./scripts/watch.js",
     "prettier": "npx prettier --write . '!(node_module|build)/**/*'"
   }
+
 }

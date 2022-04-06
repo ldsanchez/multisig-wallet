@@ -6,9 +6,7 @@ import "./MultisigWallet.sol";
 contract MultisigWalletFactory {
     MultisigWallet[] public multisigWallets;
 
-    //
     mapping(address => bool) existsMultisigWallet;
-    //
 
     event Create(
         uint256 indexed contractId,
@@ -18,37 +16,29 @@ contract MultisigWalletFactory {
         uint256 signaturesRequired
     );
 
-    //
-    // event Owners(
-    //     address indexed contractAddress,
-    //     address[] owners,
-    //     uint256 indexed signaturesRequired
-    // );
-    //
+    event Owners(
+        address indexed contractAddress,
+        address[] owners,
+        uint256 indexed signaturesRequired
+    );
 
-    //
-    // modifier onlyRegistered() {
-    //     require(
-    //         existsMultisigWallet[msg.sender],
-    //         "caller not registered to use logger"
-    //     );
-    //     _;
-    // }
+    constructor() {}
 
-    //
+    modifier onlyRegistered() {
+        require(
+            existsMultisigWallet[msg.sender],
+            "caller not registered to use logger"
+        );
+        _;
+    }
 
-    //
-    // function emitOwners(
-    //     address _contractAddress,
-    //     address[] memory _owners,
-    //     uint256 _signaturesRequired
-    // ) external onlyRegistered {
-    //     emit Owners(_contractAddress, _owners, _signaturesRequired);
-    // }
-
-    //
-
-    //constructor() {}
+    function emitOwners(
+        address _contractAddress,
+        address[] memory _owners,
+        uint256 _signaturesRequired
+    ) external onlyRegistered {
+        emit Owners(_contractAddress, _owners, _signaturesRequired);
+    }
 
     function numberOfMultisigWallets() public view returns (uint256) {
         return multisigWallets.length;
@@ -76,6 +66,7 @@ contract MultisigWalletFactory {
             _owners,
             _signaturesRequired
         );
+        emit Owners(address(multisigWallet), _owners, _signaturesRequired);
     }
 
     function getMultisigWallet(uint256 _index)

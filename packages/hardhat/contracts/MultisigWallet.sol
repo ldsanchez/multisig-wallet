@@ -14,6 +14,7 @@ contract MultisigWallet {
     event Approve(address indexed owner, uint256 indexed txId);
     event Revoke(address indexed owner, uint256 indexed txId);
     event Execute(uint256 indexed txId);
+    event Owner(address indexed owner, bool added);
 
     struct Transaction {
         address to;
@@ -49,6 +50,16 @@ contract MultisigWallet {
         _;
     }
 
+    modifier onlySelf() {
+        require(msg.sender == address(this), "Not Self");
+        _;
+    }
+
+    modifier requireNonZeroSignatures(uint256 _signaturesRequired) {
+        require(_signaturesRequired > 0, "Must be non-zero sigs required");
+        _;
+    }
+
     constructor(
         uint256 _chainId,
         address[] memory _owners,
@@ -69,6 +80,8 @@ contract MultisigWallet {
 
             isOwner[owner] = true;
             owners.push(owner);
+
+            emit Owner(owner, isOwner[owner]);
         }
 
         signaturesRequired = _signaturesRequired;
@@ -123,17 +136,25 @@ contract MultisigWallet {
     //     logger.emitOwners(address(this), owners, confirmationsRequired);
     //   }
 
-    //  function addSigner(address newSigner, uint256 newSignaturesRequired) public onlySelf requireNonZeroSignatures(newSignaturesRequired) {
-    //     require(newSigner != address(0), "addSigner: zero address");
-    //     require(!isOwner[newSigner], "addSigner: owner not unique");
+    function addOwner(address newOwner, uint256 newSignaturesRequired)
+        public
+        onlySelf
+        requireNonZeroSignatures(newSignaturesRequired)
+    {
+        require(newOwner != address(0), "addSigner: zero address");
+        require(!isOwner[newOwner], "addSigner: owner not unique");
 
-    //     isOwner[newSigner] = true;
-    //     owners.push(newSigner);
-    //     signaturesRequired = newSignaturesRequired;
+        isOwner[newOwner] = true;
+        owners.push(newOwner);
+        signaturesRequired = newSignaturesRequired;
 
-    //     emit Owner(newSigner, isOwner[newSigner]);
-    //     multiSigFactory.emitOwners(address(this), owners, newSignaturesRequired);
-    //   }
+        emit Owner(newOwner, isOwner[newOwner]);
+        multisigWalletFactory.emitOwners(
+            address(this),
+            owners,
+            newSignaturesRequired
+        );
+    }
 
     //   function removeSigner(address oldSigner, uint256 newSignaturesRequired) public onlySelf requireNonZeroSignatures(newSignaturesRequired) {
     //     require(isOwner[oldSigner], "removeSigner: not owner");
