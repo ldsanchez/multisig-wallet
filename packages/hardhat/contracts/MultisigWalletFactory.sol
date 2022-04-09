@@ -58,6 +58,7 @@ contract MultisigWalletFactory {
             address(this)
         );
         multisigWallets.push(multisigWallet);
+        existsMultisigWallet[address(multisigWallet)] = true;
 
         emit Create(
             id,

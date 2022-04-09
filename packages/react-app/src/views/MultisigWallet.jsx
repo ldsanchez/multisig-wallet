@@ -1,13 +1,30 @@
-import { Button, Card, DatePicker, Divider, Input, Progress, Slider, Spin, Switch, Select, Col, Row,   Alert, List } from "antd";
+import {
+  Button,
+  Card,
+  DatePicker,
+  Divider,
+  Input,
+  Progress,
+  Slider,
+  Spin,
+  Switch,
+  Select,
+  Col,
+  Row,
+  Alert,
+  List,
+  Pagination,
+} from "antd";
 import React, { useState, useEffect } from "react";
 
 import { utils } from "ethers";
 import { SyncOutlined } from "@ant-design/icons";
 
-import { Address, Balance, Events, Owners, TransactionListItem } from "../components";
+import { Address, Balance, Events, Owners, TransactionListItem, CreateTransaction, Transactions } from "../components";
+import { BACKEND_URL } from "../constants";
 import CreateMultisigWalletModal from "../components/CreateMultisigWalletModal";
 import { useEventListener } from "eth-hooks/events/";
-import {  useContractReader } from "eth-hooks";
+import { useContractReader } from "eth-hooks";
 import QR from "qrcode.react";
 
 // import multiSigWalletABI from "../contracts/MultisigWallet";
@@ -39,7 +56,6 @@ export default function MultisigWallet({
   blockExplorer,
   userSigner,
 }) {
-
   const contractName = "MultisigWallet";
   const contractAddress = readContracts?.MultisigWallet?.address;
 
@@ -53,7 +69,7 @@ export default function MultisigWallet({
   const [multiSigs, setMultiSigs] = useState([]);
   const [currentMultiSigAddress, setCurrentMultiSigAddress] = useState();
 
-  const handleMultiSigChange = (value) => {
+  const handleMultiSigChange = value => {
     setContractNameForEvent(null);
     setCurrentMultiSigAddress(value);
   };
@@ -75,9 +91,9 @@ export default function MultisigWallet({
         setMultiSigs(multiSigsForUser);
       }
     }
-  }, [ownersMultiSigEvents , address]);
+  }, [ownersMultiSigEvents, address]);
 
-  //const [signaturesRequired, setSignaturesRequired] = useState(0);
+  const [signaturesRequired, setSignaturesRequired] = useState(0);
   const [nonce, setNonce] = useState(0);
 
   const signaturesRequiredContract = useContractReader(readContracts, contractName, "signaturesRequired");
@@ -94,8 +110,8 @@ export default function MultisigWallet({
       const signaturesRequired = await readContracts.MultisigWallet.signaturesRequired();
       setSignaturesRequired(signaturesRequired);
 
-      // const nonce = await readContracts.MultiSigWallet.nonce();
-      // setNonce(nonce);
+      const nonce = await readContracts.MultisigWallet.nonce();
+      setNonce(nonce);
     }
 
     if (currentMultiSigAddress) {
@@ -136,35 +152,45 @@ export default function MultisigWallet({
     setOwnerEvents(allOwnerEvents.filter(contractEvent => contractEvent.address === currentMultiSigAddress));
   }, [allExecuteTransactionEvents, allOwnerEvents, currentMultiSigAddress]);
 
-  const [signaturesRequired, setSignaturesRequired] = useState(0);
+  // const [signaturesRequired, setSignaturesRequired] = useState(0);
   //const [nonce, setNonce] = useState(0);
 
   const userHasMultiSigs = currentMultiSigAddress ? true : false;
 
   return (
-    <div>
-      <CreateMultisigWalletModal
-        price={price}
-        selectedChainId={selectedChainId}
-        mainnetProvider={mainnetProvider}
-        address={address}
-        tx={tx}
-        writeContracts={writeContracts}
-        contractName={"MultisigWalletFactory"}
-        isCreateModalVisible={isCreateModalVisible}
-        setIsCreateModalVisible={setIsCreateModalVisible}
-      />
-      <Select value={[currentMultiSigAddress]} style={{ width: 120 }} onChange={handleMultiSigChange}>
-        {multiSigs.map((address, index) => (
-          <Option key={index} value={address}>
-            {address}
-          </Option>
-        ))}
-      </Select>
-      <Row>
-        <Col xs={{ span: 24 }} lg={{ span: 12, offset: 3 }}>
-          <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
-            <div style={{ paddingBottom: 32 }}>
+    <div style={{ padding: 16, margin: "auto", marginTop: 10 }}>
+      <Row justify="center">
+        <Col>
+          <div>
+            <CreateMultisigWalletModal
+              price={price}
+              selectedChainId={selectedChainId}
+              mainnetProvider={mainnetProvider}
+              address={address}
+              tx={tx}
+              writeContracts={writeContracts}
+              contractName={"MultisigWalletFactory"}
+              isCreateModalVisible={isCreateModalVisible}
+              setIsCreateModalVisible={setIsCreateModalVisible}
+            />
+            <Select value={[currentMultiSigAddress]} style={{ width: 400 }} onChange={handleMultiSigChange}>
+              {multiSigs.map((address, index) => (
+                <Option key={index} value={address}>
+                  {address}
+                </Option>
+              ))}
+            </Select>
+          </div>
+        </Col>
+      </Row>
+      <Divider />
+      <Row justify="space-around">
+        {/* <Col xs={{ span: 24 }} lg={{ span: 12, offset: 3 }}> */}
+        <Col lg={6} xs={24}>
+          <div>
+            <div>
+              {/* <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
+            <div style={{ paddingBottom: 32 }}> */}
               <div>
                 <Balance
                   address={currentMultiSigAddress ? currentMultiSigAddress : ""}
@@ -191,22 +217,6 @@ export default function MultisigWallet({
                   fontSize={32}
                 />
               </div>
-              <List
-                bordered
-                dataSource={executeTransactionEvents}
-                renderItem={item => {
-                  return (
-                    <TransactionListItem
-                      item={item}
-                      mainnetProvider={mainnetProvider}
-                      blockExplorer={blockExplorer}
-                      price={price}
-                      readContracts={readContracts}
-                      contractName={contractName}
-                    />
-                  );
-                }}
-              />
               <>
                 {userHasMultiSigs ? (
                   <div>
@@ -224,7 +234,61 @@ export default function MultisigWallet({
             </div>
           </div>
         </Col>
+        <Col lg={6} xs={24}>
+          <CreateTransaction
+            poolServerUrl={BACKEND_URL}
+            contractName={contractName}
+            contractAddress={contractAddress}
+            mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
+            price={price}
+            tx={tx}
+            readContracts={readContracts}
+            userSigner={userSigner}
+            DEBUG={DEBUG}
+            nonce={nonce}
+            blockExplorer={blockExplorer}
+            signaturesRequired={signaturesRequired}
+          />
+          <Transactions
+            poolServerUrl={BACKEND_URL}
+            contractName={contractName}
+            address={address}
+            userSigner={userSigner}
+            mainnetProvider={mainnetProvider}
+            localProvider={localProvider}
+            //yourLocalBalance={yourLocalBalance}
+            price={price}
+            tx={tx}
+            writeContracts={writeContracts}
+            readContracts={readContracts}
+            blockExplorer={blockExplorer}
+            nonce={nonce}
+            signaturesRequired={signaturesRequired}
+          />
+        </Col>
+      </Row>
+      <Row justify="space-around">
+        <Col>
+          <List
+            pagination="true"
+            bordered
+            dataSource={executeTransactionEvents}
+            renderItem={item => {
+              return (
+                <TransactionListItem
+                  item={item}
+                  mainnetProvider={mainnetProvider}
+                  blockExplorer={blockExplorer}
+                  price={price}
+                  readContracts={readContracts}
+                  contractName={contractName}
+                />
+              );
+            }}
+          />
+        </Col>
       </Row>
     </div>
-);
+  );
 }

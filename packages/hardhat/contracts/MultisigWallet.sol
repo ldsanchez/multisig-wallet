@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.10;
+pragma solidity >=0.8.0 <0.9.0;
+
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./MultisigWalletFactory.sol";
@@ -13,7 +15,16 @@ contract MultisigWallet {
     event Submit(uint256 indexed txId);
     event Approve(address indexed owner, uint256 indexed txId);
     event Revoke(address indexed owner, uint256 indexed txId);
-    event Execute(uint256 indexed txId);
+    //event Execute(uint256 indexed txId);
+    event ExecuteTransaction(
+        address indexed owner,
+        address payable to,
+        uint256 value,
+        bytes data,
+        uint256 nonce,
+        bytes32 hash,
+        bytes result
+    );
     event Owner(address indexed owner, bool added);
 
     struct Transaction {
@@ -25,6 +36,8 @@ contract MultisigWallet {
 
     address[] public owners;
     mapping(address => bool) public isOwner;
+    uint256 public nonce;
+    uint256 public chainId;
     uint256 public signaturesRequired;
 
     Transaction[] public transactions;
@@ -55,8 +68,13 @@ contract MultisigWallet {
         _;
     }
 
-    modifier requireNonZeroSignatures(uint256 _signaturesRequired) {
+    modifier nonZeroSignatures(uint256 _signaturesRequired) {
         require(_signaturesRequired > 0, "Must be non-zero sigs required");
+        _;
+    }
+
+    modifier nonZeroAddress(address _newOwner) {
+        require(_newOwner != address(0), "addSigner: zero address");
         _;
     }
 
@@ -66,6 +84,7 @@ contract MultisigWallet {
         uint256 _signaturesRequired,
         address _factory
     ) payable {
+        multisigWalletFactory = MultisigWalletFactory(_factory);
         require(_owners.length > 0, "Owners required");
         require(
             _signaturesRequired > 0 && _signaturesRequired <= _owners.length,
@@ -85,6 +104,7 @@ contract MultisigWallet {
         }
 
         signaturesRequired = _signaturesRequired;
+        chainId = _chainId;
     }
 
     receive() external payable {
@@ -101,7 +121,7 @@ contract MultisigWallet {
             keccak256(
                 abi.encodePacked(
                     address(this),
-                    //chainId,
+                    chainId,
                     _nonce,
                     to,
                     value,
@@ -118,30 +138,12 @@ contract MultisigWallet {
         return _hash.toEthSignedMessageHash().recover(_signature);
     }
 
-    //     function addSigner(address newSigner, uint256 newSignaturesRequired) public onlySelf {
-    //     require(newSigner != address(0), "addSigner: zero address");
-    //     require(!isOwner[newSigner], "addSigner: owner not unique");
-    //     require(newSignaturesRequired > 0, "addSigner: must be non-zero sigs required");
-    //     isOwner[newSigner] = true;
-    //     owners.push(newSigner);
-    //     confirmationsRequired = newSignaturesRequired;
-    //     logger.emitOwners(address(this), owners, confirmationsRequired);
-    //   }
-
-    //   function removeSigner(address oldSigner, uint256 newSignaturesRequired) public onlySelf {
-    //     require(isOwner[oldSigner], "removeSigner: not owner");
-    //     require(newSignaturesRequired > 0, "removeSigner: must be non-zero sigs required");
-    //     _eliminateOwner(oldSigner);
-    //     confirmationsRequired = newSignaturesRequired;
-    //     logger.emitOwners(address(this), owners, confirmationsRequired);
-    //   }
-
-    function addOwner(address newOwner, uint256 newSignaturesRequired)
+    function addSigner(address newOwner, uint256 newSignaturesRequired)
         public
         onlySelf
-        requireNonZeroSignatures(newSignaturesRequired)
+        nonZeroSignatures(newSignaturesRequired)
+        nonZeroAddress(newOwner)
     {
-        require(newOwner != address(0), "addSigner: zero address");
         require(!isOwner[newOwner], "addSigner: owner not unique");
 
         isOwner[newOwner] = true;
@@ -156,15 +158,41 @@ contract MultisigWallet {
         );
     }
 
-    //   function removeSigner(address oldSigner, uint256 newSignaturesRequired) public onlySelf requireNonZeroSignatures(newSignaturesRequired) {
-    //     require(isOwner[oldSigner], "removeSigner: not owner");
+    function removeSigner(address _oldOwner, uint256 newSignaturesRequired)
+        public
+        onlySelf
+        nonZeroSignatures(newSignaturesRequired)
+    {
+        require(isOwner[_oldOwner], "removeSigner: not owner");
 
-    //      _removeOwner(oldSigner);
-    //     signaturesRequired = newSignaturesRequired;
+        _removeOwnerList(_oldOwner);
+        signaturesRequired = newSignaturesRequired;
 
-    //     emit Owner(oldSigner, isOwner[oldSigner]);
-    //     multiSigFactory.emitOwners(address(this), owners, newSignaturesRequired);
-    //   }
+        emit Owner(_oldOwner, isOwner[_oldOwner]);
+        multisigWalletFactory.emitOwners(
+            address(this),
+            owners,
+            newSignaturesRequired
+        );
+    }
+
+    function _removeOwnerList(address _oldOwner) private {
+        isOwner[_oldOwner] = false;
+        uint256 ownersLength = owners.length;
+        address[] memory poppedOwners = new address[](owners.length);
+        for (uint256 i = ownersLength - 1; i >= 0; i--) {
+            if (owners[i] != _oldOwner) {
+                poppedOwners[i] = owners[i];
+                owners.pop();
+            } else {
+                owners.pop();
+                for (uint256 j = i; j < ownersLength - 1; j++) {
+                    owners.push(poppedOwners[j]);
+                }
+                return;
+            }
+        }
+    }
 
     function submit(
         address _to,
@@ -201,25 +229,70 @@ contract MultisigWallet {
         }
     }
 
-    function execute(uint256 _txId)
-        external
-        txExists(_txId)
-        notExecuted(_txId)
-    {
+    // function execute(uint256 _txId)
+    //     external
+    //     txExists(_txId)
+    //     notExecuted(_txId)
+    // {
+    //     require(
+    //         _getApprovalCount(_txId) >= signaturesRequired,
+    //         "approvals < required"
+    //     );
+    //     Transaction storage transaction = transactions[_txId];
+    //     transaction.executed = true;
+
+    //     (bool success, ) = transaction.to.call{value: transaction.value}(
+    //         transaction.data
+    //     );
+
+    //     require(success, "tx failed");
+
+    //     emit Execute(_txId);
+    // }
+
+    function executeTransaction(
+        address payable to,
+        uint256 value,
+        bytes memory data,
+        bytes[] memory signatures
+    ) public onlyOwner returns (bytes memory) {
+        bytes32 _hash = getTransactionHash(nonce, to, value, data);
+
+        nonce++;
+
+        uint256 validSignatures;
+        address duplicateGuard;
+        for (uint256 i = 0; i < signatures.length; i++) {
+            address recovered = recover(_hash, signatures[i]);
+            require(
+                recovered > duplicateGuard,
+                "executeTransaction: duplicate or unordered signatures"
+            );
+            duplicateGuard = recovered;
+
+            if (isOwner[recovered]) {
+                validSignatures++;
+            }
+        }
+
         require(
-            _getApprovalCount(_txId) >= signaturesRequired,
-            "approvals < required"
-        );
-        Transaction storage transaction = transactions[_txId];
-        transaction.executed = true;
-
-        (bool success, ) = transaction.to.call{value: transaction.value}(
-            transaction.data
+            validSignatures >= signaturesRequired,
+            "executeTransaction: not enough valid signatures"
         );
 
-        require(success, "tx failed");
+        (bool success, bytes memory result) = to.call{value: value}(data);
+        require(success, "executeTransaction: tx failed");
 
-        emit Execute(_txId);
+        emit ExecuteTransaction(
+            msg.sender,
+            to,
+            value,
+            data,
+            nonce - 1,
+            _hash,
+            result
+        );
+        return result;
     }
 
     function revoke(uint256 _txId)
