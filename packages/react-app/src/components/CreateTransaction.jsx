@@ -71,8 +71,8 @@ export default function CreateTransaction({
 
       let callData;
       let executeToAddress;
-      if (methodName == "transferFunds" || methodName == "customCallData" || methodName == "wcCallData") {
-        callData = methodName == "transferFunds" ? "0x" : customCallData;
+      if (methodName === "transferFunds" || methodName === "customCallData" || methodName === "wcCallData") {
+        callData = methodName === "transferFunds" ? "0x" : customCallData;
         executeToAddress = to;
       } else {
         callData = readContracts[contractName]?.interface?.encodeFunctionData(methodName, [to, newSignaturesRequired]);
@@ -129,8 +129,8 @@ export default function CreateTransaction({
           <div style={{ margin: 8, padding: 8 }}>
             <Select value={methodName} style={{ width: "100%" }} onChange={setMethodName}>
               <Option key="transferFunds">Send ETH</Option>
-              <Option key="addSigner">Add Owner</Option>
-              <Option key="removeSigner">Remove Owner</Option>
+              <Option key="addOwner">Add Owner</Option>
+              <Option key="removeOwner">Remove Owner</Option>
               <Option key="customCallData">Custom Call Data</Option>
               <Option key="wcCallData">
                 <img src="walletconnect-logo.svg" style={{ height: 20, width: 20 }} /> WalletConnect
@@ -159,7 +159,7 @@ export default function CreateTransaction({
                 />
               </div>
               <div style={inputStyle}>
-                {(methodName == "addSigner" || methodName == "removeSigner") && (
+                {(methodName == "addOwner" || methodName == "removeOwner") && (
                   <InputNumber
                     style={{ width: "100%" }}
                     placeholder="New # of signatures required"

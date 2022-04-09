@@ -105,7 +105,7 @@ export default function CreateMultisigWalletModal({
       }
 
       tx(
-        writeContracts[contractName].create(selectedChainId, owners, signaturesRequired, {
+        writeContracts[contractName].createMultisigWallet(selectedChainId, owners, signaturesRequired, {
           value: ethers.utils.parseEther("" + parseFloat(amount).toFixed(12)),
         }),
         update => {

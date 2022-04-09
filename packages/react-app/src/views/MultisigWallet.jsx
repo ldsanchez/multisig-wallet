@@ -29,13 +29,12 @@ import QR from "qrcode.react";
 
 // import multiSigWalletABI from "../contracts/MultisigWallet";
 // import multiSigWalletABI from "../contracts/MultisigWallet.js";
-import multiSigWalletABI from "../contracts/abi.json";
+import multiSigWalletABI from "../contracts/MultisigWallet.json";
 
 // var fs = require('fs');
 // var jsonFile = "../contracts/MultisigWallet";
 // var multiSigWalletABI = JSON.parse(fs.readFileSync(jsonFile));
 
-console.log(multiSigWalletABI);
 
 const { ethers } = require("ethers");
 
@@ -65,7 +64,7 @@ export default function MultisigWallet({
   const ownersMultiSigEvents = useEventListener(readContracts, "MultisigWalletFactory", "Owners", localProvider, 1);
   if (DEBUG) console.log("📟 ownersMultiSigEvents:", ownersMultiSigEvents);
 
-  //const [contractNameForEvent, setContractNameForEvent] = useState();
+  const [contractNameForEvent, setContractNameForEvent] = useState();
   const [multiSigs, setMultiSigs] = useState([]);
   const [currentMultiSigAddress, setCurrentMultiSigAddress] = useState();
 
@@ -102,8 +101,6 @@ export default function MultisigWallet({
     setSignaturesRequired(signaturesRequiredContract);
     setNonce(nonceContract);
   }, [signaturesRequiredContract, nonceContract]);
-
-  const [contractNameForEvent, setContractNameForEvent] = useState();
 
   useEffect(() => {
     async function getContractValues() {
