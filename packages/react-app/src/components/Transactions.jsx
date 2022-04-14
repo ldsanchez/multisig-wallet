@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Button, List, Divider, Input, Card, DatePicker, Slider, Switch, Progress, Spin } from "antd";
-import { ConsoleSqlOutlined, SyncOutlined } from "@ant-design/icons";
-import { parseEther, formatEther } from "@ethersproject/units";
+import React, { useState } from "react";
+import { Button, List, Spin } from "antd";
+import { parseEther } from "@ethersproject/units";
 import { ethers } from "ethers";
-import { Address, AddressInput, Balance, Blockie, TransactionListItem } from ".";
+import { TransactionListItem } from ".";
 import { usePoller } from "eth-hooks";
 
 const axios = require("axios");
@@ -19,7 +18,6 @@ export default function Transactions({
   userSigner,
   mainnetProvider,
   localProvider,
-  //yourLocalBalance,
   price,
   tx,
   readContracts,
@@ -91,11 +89,8 @@ export default function Transactions({
   }
 
   return (
-    <div style={{ maxWidth: 750, margin: "auto", marginTop: 32, marginBottom: 32 }}>
-      <h1>
-        <b style={{ padding: 16 }}>#{nonce ? nonce.toNumber() : <Spin />}</b>
-      </h1>
-
+    <div style={{ maxWidth: 750, margin: "auto", marginTop: 64, marginBottom: 32 }}>
+      <h2 style={{ padding: 16 }}>Pending Transactions</h2>
       <List
         bordered
         dataSource={transactions}
@@ -159,7 +154,7 @@ export default function Transactions({
                   const [finalSigList, finalSigners] = await getSortedSigList(item.signatures, newHash);
 
                   console.log(
-                    "writeContractsxxxxx: ",
+                    "writeContracts: ",
                     item.to,
                     parseEther("" + parseFloat(item.amount).toFixed(12)),
                     item.data,
@@ -178,7 +173,7 @@ export default function Transactions({
               >
                 Exec
               </Button>
-          </TransactionListItem>
+            </TransactionListItem>
           );
         }}
       />

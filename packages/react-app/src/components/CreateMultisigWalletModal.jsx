@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Modal, InputNumber } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import { ethers } from "ethers";
-import AddressInput from "./AddressInput";
-import EtherInput from "./EtherInput";
-import CreateMultisigWalletModalSentOverlay from "./CreateMultisigWalletModalSentOverlay";
+import { AddressInput, EtherInput, CreateMultisigWalletModalSentOverlay } from ".";
 
 export default function CreateMultisigWalletModal({
   price,
@@ -17,7 +15,6 @@ export default function CreateMultisigWalletModal({
   isCreateModalVisible,
   setIsCreateModalVisible,
 }) {
-
   // Transaction status State
   const [pendingCreate, setPendingCreate] = useState(false);
   const [txSent, setTxSent] = useState(false);
@@ -32,7 +29,6 @@ export default function CreateMultisigWalletModal({
   // Set the first owner as the connected wallet
   useEffect(() => {
     if (address) {
-      // setOwners([address, ""]);
       setOwners([address]);
     }
   }, [address]);
@@ -140,16 +136,6 @@ export default function CreateMultisigWalletModal({
       console.log("CREATE MUTLI-SIG SUBMIT FAILED: ", e);
     }
   };
-
-  // const handleSubmit = async () => {
-  //   try {
-  //     await writeContracts[contractName].create(selectedChainId, owners, signaturesRequired, {
-  //       value: ethers.utils.parseEther("" + parseFloat(amount).toFixed(12)),
-  //     });
-  //   } catch (error) {
-  //     throw new Error("No se pudo ejecutar la creacion");
-  //   }
-  // };
 
   const handleCancel = () => {
     setIsCreateModalVisible(false);

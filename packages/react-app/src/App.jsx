@@ -25,14 +25,13 @@ import {
   NetworkSwitch,
 } from "./components";
 import { NETWORKS, ALCHEMY_KEY } from "./constants";
-import externalContracts from "./contracts/external_contracts";
 // contracts
+import externalContracts from "./contracts/external_contracts";
 import deployedContracts from "./contracts/hardhat_contracts.json";
+import multisigWalletInstance from "./contracts/hardhat_non_deployed_contracts";
 import { Transactor, Web3ModalSetup } from "./helpers";
-// import { Home, ExampleUI, Hints, Subgraph } from "./views";
-import { Home, ExampleUI, Hints, Subgraph, MultisigWallet } from "./views";
+import { Home, ExampleUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
-// import CreateMultisigWalletModal from "./components/CreateMultisigWalletModal";
 
 const { ethers } = require("ethers");
 /*
@@ -145,7 +144,11 @@ function App(props) {
 
   // const contractConfig = useContractConfig();
 
-  const contractConfig = { deployedContracts: deployedContracts || {}, externalContracts: externalContracts || {} };
+  const contractConfig = {
+    deployedContracts: deployedContracts || {},
+    externalContracts: externalContracts || {},
+    multisigWalletInstance: multisigWalletInstance || {},
+  };
 
   // Load in your local 📝 contract and read a value from it:
   const readContracts = useContractLoader(localProvider, contractConfig);
@@ -248,10 +251,17 @@ function App(props) {
 
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
+  const contractName = "MultisigWallet";
+  const contractAddress = readContracts?.MultisigWallet?.address;
+
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
-      <Header />
+      <Header
+        link="https://github.com/ldsanchez/multisig-wallet"
+        title="Multisig Wallet Factory"
+        subTitle="MWFactory"
+      />
       <NetworkDisplay
         NETWORKCHECK={NETWORKCHECK}
         localChainId={localChainId}
@@ -264,12 +274,6 @@ function App(props) {
         <Menu.Item key="/">
           <Link to="/">App Home</Link>
         </Menu.Item>
-        <Menu.Item key="/multisigwallet">
-          <Link to="/multisigwallet">Multisig Wallet</Link>
-        </Menu.Item>
-        {/* <Menu.Item key="/createmultisig">
-          <Link to="/createmultisig">Create Multisig</Link>
-        </Menu.Item> */}
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
@@ -290,10 +294,7 @@ function App(props) {
       <Switch>
         <Route exact path="/">
           {/* pass in any web3 props to this Home component. For example, yourLocalBalance */}
-          <Home yourLocalBalance={yourLocalBalance} readContracts={readContracts} />
-        </Route>
-        <Route exact path="/multisigwallet">
-          <MultisigWallet
+          <Home
             price={price}
             selectedChainId={selectedChainId}
             mainnetProvider={mainnetProvider}
@@ -310,19 +311,6 @@ function App(props) {
             userSigner={userSigner}
           />
         </Route>
-        {/* <Route exact path="/createmultisig">
-          <CreateMultisigWalletModal
-            price={price}
-            selectedChainId={selectedChainId}
-            mainnetProvider={mainnetProvider}
-            address={address}
-            tx={tx}
-            writeContracts={writeContracts}
-            contractName={"MultisigWalletFactory"}
-            isCreateModalVisible={isCreateModalVisible}
-            setIsCreateModalVisible={setIsCreateModalVisible}
-          />
-        </Route> */}
         <Route exact path="/debug">
           {/*
                 🎛 this scaffolding is full of commonly used components
@@ -332,6 +320,17 @@ function App(props) {
 
           <Contract
             name="MultisigWalletFactory"
+            price={price}
+            signer={userSigner}
+            provider={localProvider}
+            address={address}
+            blockExplorer={blockExplorer}
+            contractConfig={contractConfig}
+          />
+          <Contract
+            name={contractName}
+            contractAddress={contractAddress}
+            customContract={readContracts && readContracts.MultisigWallet}
             price={price}
             signer={userSigner}
             provider={localProvider}

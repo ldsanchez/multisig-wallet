@@ -33,16 +33,13 @@ const localChainId = "31337";
 
 // };
 
-module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
+module.exports = async ({ getNamedAccounts, deployments }) => {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  const chainId = await getChainId();
 
   await deploy("MultisigWalletFactory", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
-    // args: [ "Hello", ethers.utils.parseEther("1.5") ],
-    // args: [["0x7E9773eB3788452F8d477287aB87e223348714c1"], 1 ],
     log: true,
     waitConfirmations: 5,
   });

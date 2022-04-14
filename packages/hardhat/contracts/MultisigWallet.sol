@@ -12,7 +12,7 @@ import "./MultisigWalletFactory.sol";
 contract MultisigWallet {
     MultisigWalletFactory public multisigWalletFactory;
 
-    // Pass the bytes32 as the first parameter for the ECDSA functions
+    // Pass the bytes32 as the first parameter when calling the ECDSA functions
     using ECDSA for bytes32;
     // Deposit event
     event Deposit(address indexed sender, uint256 amount, uint256 balance);
@@ -54,12 +54,6 @@ contract MultisigWallet {
         _;
     }
 
-    // Non Zero address
-    modifier nonZeroAddress(address _newOwner) {
-        require(_newOwner != address(0), "Invalid owner");
-        _;
-    }
-
     constructor(
         uint256 _chainId,
         address[] memory _initialOwners,
@@ -67,6 +61,7 @@ contract MultisigWallet {
         address _factory
     ) payable nonZeroSignatures(_signaturesRequired) {
         multisigWalletFactory = MultisigWalletFactory(_factory);
+        signaturesRequired = _signaturesRequired;
 
         // Validate Owners & Signatures required
         require(_initialOwners.length > 0, "Owners required");
@@ -89,7 +84,6 @@ contract MultisigWallet {
             emit Owner(owner, isOwner[owner]);
         }
 
-        signaturesRequired = _signaturesRequired;
         chainId = _chainId;
     }
 
@@ -129,12 +123,12 @@ contract MultisigWallet {
 
     // Excute the calldata transaction
     function executeTransaction(
-        address payable to,
-        uint256 value,
-        bytes memory data,
-        bytes[] memory signatures
+        address payable _to,
+        uint256 _value,
+        bytes memory _data,
+        bytes[] memory _signatures
     ) public onlyOwner returns (bytes memory) {
-        bytes32 _hash = getTransactionHash(nonce, to, value, data);
+        bytes32 _hash = getTransactionHash(nonce, _to, _value, _data);
 
         nonce++;
 
@@ -143,8 +137,8 @@ contract MultisigWallet {
         address duplicateGuard;
 
         // Recover the signing addresess and validate if unique and update valid signatures
-        for (uint256 i = 0; i < signatures.length; i++) {
-            address recovered = recover(_hash, signatures[i]);
+        for (uint256 i = 0; i < _signatures.length; i++) {
+            address recovered = recover(_hash, _signatures[i]);
             require(
                 recovered > duplicateGuard,
                 "executeTransaction: duplicate or unordered signatures"
@@ -163,15 +157,15 @@ contract MultisigWallet {
         );
 
         // Execute the calldata
-        (bool success, bytes memory result) = to.call{value: value}(data);
+        (bool success, bytes memory result) = _to.call{value: _value}(_data);
         require(success, "executeTransaction: tx failed");
 
         // Emit the ExecuteTransaction event
         emit ExecuteTransaction(
             msg.sender,
-            to,
-            value,
-            data,
+            _to,
+            _value,
+            _data,
             nonce - 1,
             _hash,
             result
@@ -184,8 +178,8 @@ contract MultisigWallet {
         public
         onlySelf
         nonZeroSignatures(_newSignaturesRequired)
-        nonZeroAddress(_newOwner)
     {
+        require(_newOwner != address(0), "addSigner: zero address");
         require(!isOwner[_newOwner], "addSigner: owner not unique");
 
         isOwner[_newOwner] = true;

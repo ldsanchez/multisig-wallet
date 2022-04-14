@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useHistory } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { Button, Input, Select, InputNumber, Space, Tooltip } from "antd";
 import { CodeOutlined } from "@ant-design/icons";
 import { AddressInput, EtherInput, WalletConnectInput } from "../components";
@@ -24,8 +23,6 @@ export default function CreateTransaction({
   nonce,
   signaturesRequired,
 }) {
-  const history = useHistory();
-
   const [methodName, setMethodName] = useLocalStorage("methodName", "transferFunds");
   const [newSignaturesRequired, setNewSignaturesRequired] = useState(signaturesRequired);
   const [amount, setAmount] = useState("0");
@@ -51,7 +48,7 @@ export default function CreateTransaction({
     };
 
     getParsedTransaction();
-  }, [customCallData]);
+  }, [to, customCallData]);
 
   const loadWalletConnectData = ({ to, value, data }) => {
     setTo(to);
@@ -110,12 +107,13 @@ export default function CreateTransaction({
 
         console.log("RESULT", res.data);
         setTimeout(() => {
-          // history.push("/pool");
           setLoading(false);
         }, 1000);
       } else {
         console.log("ERROR, NOT OWNER.");
+        setLoading(false);
       }
+      setAmount("0");
     } catch (error) {
       console.log("Error: ", error);
       setLoading(false);
@@ -124,7 +122,7 @@ export default function CreateTransaction({
 
   return (
     <div>
-      <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, margin: "auto", marginTop: 64 }}>
+      <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, margin: "auto", marginTop: 24 }}>
         <div style={{ margin: 8 }}>
           <div style={{ margin: 8, padding: 8 }}>
             <Select value={methodName} style={{ width: "100%" }} onChange={setMethodName}>
@@ -133,11 +131,12 @@ export default function CreateTransaction({
               <Option key="removeOwner">Remove Owner</Option>
               <Option key="customCallData">Custom Call Data</Option>
               <Option key="wcCallData">
-                <img src="walletconnect-logo.svg" style={{ height: 20, width: 20 }} /> WalletConnect
+                <img src="walletconnect-logo.svg" alt="walletconnect-logo" style={{ height: 20, width: 20 }} />
+                WalletConnect
               </Option>
             </Select>
           </div>
-          {methodName == "wcCallData" ? (
+          {methodName === "wcCallData" ? (
             <div style={inputStyle}>
               <WalletConnectInput
                 chainId={localProvider?._network.chainId}
@@ -153,13 +152,13 @@ export default function CreateTransaction({
                 <AddressInput
                   autoFocus
                   ensProvider={mainnetProvider}
-                  placeholder={methodName == "transferFunds" ? "Recepient address" : "Owner address"}
+                  placeholder={methodName === "transferFunds" ? "Recepient address" : "Owner address"}
                   value={to}
                   onChange={setTo}
                 />
               </div>
               <div style={inputStyle}>
-                {(methodName == "addOwner" || methodName == "removeOwner") && (
+                {(methodName === "addOwner" || methodName === "removeOwner") && (
                   <InputNumber
                     style={{ width: "100%" }}
                     placeholder="New # of signatures required"
@@ -167,7 +166,7 @@ export default function CreateTransaction({
                     onChange={setNewSignaturesRequired}
                   />
                 )}
-                {methodName == "customCallData" && (
+                {methodName === "customCallData" && (
                   <>
                     <Input.Group compact>
                       <Input
@@ -192,7 +191,7 @@ export default function CreateTransaction({
                     />
                   </>
                 )}
-                {(methodName == "transferFunds" || methodName == "customCallData") && (
+                {(methodName === "transferFunds" || methodName === "customCallData") && (
                   <EtherInput price={price} mode="USD" value={amount} onChange={setAmount} />
                 )}
               </div>
