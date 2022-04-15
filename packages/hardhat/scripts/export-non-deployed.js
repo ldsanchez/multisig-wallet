@@ -1,21 +1,17 @@
-// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-import fs from 'fs';
-import chalk from "chalk";
-
-// const { chalk } = require("chalk");
-// const { fs } = require("fs");
+const fs = require("fs");
+const chalk = require("chalk");
 
 const contractsDir = "./hardhat/artifacts/contracts";
 const destination =
   "./react-app/src/contracts/hardhat_non_deployed_contracts.json";
 
-const exportContracts = (contractNames, destination) => {
+const exportContracts = (_contractNames, _destination) => {
   try {
-    const dirPath = destination.split("/").slice(0, -1).join("/");
-    const destinationFile = destination.split("/").slice(-1);
+    const dirPath = _destination.split("/").slice(0, -1).join("/");
+    const destinationFile = _destination.split("/").slice(-1);
 
     const exported = {};
-    contractNames.forEach((contractName) => {
+    _contractNames.forEach((contractName) => {
       const file = fs.readFileSync(
         `${contractsDir}/${contractName}.sol/${contractName}.json`
       );
@@ -34,7 +30,7 @@ const exportContracts = (contractNames, destination) => {
   } catch (e) {
     console.log(
       "Failed to export non-deployed contracts " +
-        chalk.red(contractNames) +
+        chalk.red(_contractNames) +
         "to frontend."
     );
     console.log(e);

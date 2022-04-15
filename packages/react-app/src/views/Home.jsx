@@ -7,7 +7,7 @@ import CreateMultisigWalletModal from "../components/CreateMultisigWalletModal";
 import { useEventListener } from "eth-hooks/events/";
 import { useContractReader } from "eth-hooks";
 import QR from "qrcode.react";
-import multisigWalletABI from "../contracts/MultisigWallet.json";
+import nonDeployedABI from "../contracts/hardhat_non_deployed_contracts.json";
 
 const { ethers } = require("ethers");
 
@@ -80,8 +80,16 @@ export default function MultisigWallet({
     }
 
     if (currentMultiSigAddress) {
-      readContracts.MultisigWallet = new ethers.Contract(currentMultiSigAddress, multisigWalletABI, localProvider);
-      writeContracts.MultisigWallet = new ethers.Contract(currentMultiSigAddress, multisigWalletABI, userSigner);
+      readContracts.MultisigWallet = new ethers.Contract(
+        currentMultiSigAddress,
+        nonDeployedABI.MultisigWallet,
+        localProvider,
+      );
+      writeContracts.MultisigWallet = new ethers.Contract(
+        currentMultiSigAddress,
+        nonDeployedABI.MultisigWallet,
+        userSigner,
+      );
 
       setContractNameForEvent("MultisigWallet");
       getContractValues();
@@ -154,12 +162,9 @@ export default function MultisigWallet({
       </Row>
       <Divider />
       <Row justify="space-around">
-        {/* <Col xs={{ span: 24 }} lg={{ span: 12, offset: 3 }}> */}
         <Col lg={6} xs={24}>
           <div>
             <div>
-              {/* <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
-            <div style={{ paddingBottom: 32 }}> */}
               <h2 style={{ marginTop: 16 }}>Multisig Wallet Balance:</h2>
               <div>
                 <Balance

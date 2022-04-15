@@ -28,7 +28,7 @@ import { NETWORKS, ALCHEMY_KEY } from "./constants";
 // contracts
 import externalContracts from "./contracts/external_contracts";
 import deployedContracts from "./contracts/hardhat_contracts.json";
-import multisigWalletInstance from "./contracts/hardhat_non_deployed_contracts";
+import nonDeployedContracts from "./contracts/hardhat_non_deployed_contracts";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph } from "./views";
 import { useStaticJsonRPC } from "./hooks";
@@ -147,7 +147,7 @@ function App(props) {
   const contractConfig = {
     deployedContracts: deployedContracts || {},
     externalContracts: externalContracts || {},
-    multisigWalletInstance: multisigWalletInstance || {},
+    nonDeployedContracts: nonDeployedContracts || {},
   };
 
   // Load in your local 📝 contract and read a value from it:

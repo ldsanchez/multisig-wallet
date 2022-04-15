@@ -58,11 +58,6 @@ export default function Contract({
   chainId,
   contractConfig,
 }) {
-  // const [contractAddress, setContractAddress] = useState(contractAddressv);
-  // const [contractABI, setContractABI] = useState("");
-
-  console.log("customContract init", customContract);
-  console.log("contractAddress init", contractAddress);
   const contracts = useContractLoader(provider, contractConfig, chainId);
   let contract;
   let address;
@@ -72,8 +67,6 @@ export default function Contract({
   } else if (customContract && contractAddress) {
     contract = customContract;
     address = contract ? contractAddress : "";
-    console.log("customContract", contract);
-    console.log("contractAddress", address);
   } else if (customContract) {
     contract = customContract;
     address = contract ? contract.address : "";
