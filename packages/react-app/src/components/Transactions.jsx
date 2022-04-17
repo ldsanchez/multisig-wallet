@@ -80,7 +80,7 @@ export default function Transactions({
       }
       used[sigList[sig].signature] = true;
     }
-    console.log("FInal Sig List:  ", finalSigList);
+    console.log("Final Signatures List:  ", finalSigList);
     return [finalSigList, finalSigners];
   };
 

@@ -1,9 +1,16 @@
 import { Divider, Select, Col, Row, List } from "antd";
 import React, { useState, useEffect } from "react";
 
-import { Address, Balance, Owners, TransactionListItem, CreateTransaction, Transactions } from "../components";
+import {
+  Address,
+  Balance,
+  Owners,
+  TransactionListItem,
+  CreateTransaction,
+  CreateMultisigWalletModal,
+  Transactions,
+} from "../components";
 import { BACKEND_URL } from "../constants";
-import CreateMultisigWalletModal from "../components/CreateMultisigWalletModal";
 import { useEventListener } from "eth-hooks/events/";
 import { useContractReader } from "eth-hooks";
 import QR from "qrcode.react";
@@ -34,16 +41,22 @@ export default function MultisigWallet({
   //📟 Listen for broadcast events
 
   // MultisigWalletFactory Events:
-  const ownersMultiSigEvents = useEventListener(readContracts, "MultisigWalletFactory", "Owners", localProvider, 1);
-  if (DEBUG) console.log("📟 ownersMultiSigEvents:", ownersMultiSigEvents);
+  const ownersMultisigWalletEvents = useEventListener(
+    readContracts,
+    "MultisigWalletFactory",
+    "Owners",
+    localProvider,
+    1,
+  );
+  if (DEBUG) console.log("📟 ownersMultisigWalletEvents:", ownersMultisigWalletEvents);
 
   const [contractNameForEvent, setContractNameForEvent] = useState();
-  const [multiSigs, setMultiSigs] = useState([]);
-  const [currentMultiSigAddress, setCurrentMultiSigAddress] = useState();
+  const [multisigWallets, setMultisigWallets] = useState([]);
+  const [currentMultisigWalletAddress, setCurrentMultisigWalletAddress] = useState();
 
   useEffect(() => {
     if (address) {
-      const multiSigsForUser = ownersMultiSigEvents.reduce((filtered, createEvent) => {
+      const multigigWalletsForUser = ownersMultisigWalletEvents.reduce((filtered, createEvent) => {
         if (createEvent.args.owners.includes(address) && !filtered.includes(createEvent.args.contractAddress)) {
           filtered.push(createEvent.args.contractAddress);
         }
@@ -51,14 +64,14 @@ export default function MultisigWallet({
         return filtered;
       }, []);
 
-      if (multiSigsForUser.length > 0) {
-        const recentMultiSigAddress = multiSigsForUser[multiSigsForUser.length - 1];
-        if (recentMultiSigAddress !== currentMultiSigAddress) setContractNameForEvent(null);
-        setCurrentMultiSigAddress(recentMultiSigAddress);
-        setMultiSigs(multiSigsForUser);
+      if (multigigWalletsForUser.length > 0) {
+        const recentMultiSigAddress = multigigWalletsForUser[multigigWalletsForUser.length - 1];
+        if (recentMultiSigAddress !== currentMultisigWalletAddress) setContractNameForEvent(null);
+        setCurrentMultisigWalletAddress(recentMultiSigAddress);
+        setMultisigWallets(multigigWalletsForUser);
       }
     }
-  }, [ownersMultiSigEvents, address]);
+  }, [ownersMultisigWalletEvents, address]);
 
   const [signaturesRequired, setSignaturesRequired] = useState(0);
   const [nonce, setNonce] = useState(0);
@@ -79,14 +92,14 @@ export default function MultisigWallet({
       setNonce(nonce);
     }
 
-    if (currentMultiSigAddress) {
+    if (currentMultisigWalletAddress) {
       readContracts.MultisigWallet = new ethers.Contract(
-        currentMultiSigAddress,
+        currentMultisigWalletAddress,
         nonDeployedABI.MultisigWallet,
         localProvider,
       );
       writeContracts.MultisigWallet = new ethers.Contract(
-        currentMultiSigAddress,
+        currentMultisigWalletAddress,
         nonDeployedABI.MultisigWallet,
         userSigner,
       );
@@ -94,11 +107,11 @@ export default function MultisigWallet({
       setContractNameForEvent("MultisigWallet");
       getContractValues();
     }
-  }, [currentMultiSigAddress, localProvider, readContracts, writeContracts]);
+  }, [currentMultisigWalletAddress, localProvider, readContracts, writeContracts]);
 
   // MultisigWallet Events:
   const allExecuteTransactionEvents = useEventListener(
-    currentMultiSigAddress ? readContracts : null,
+    currentMultisigWalletAddress ? readContracts : null,
     contractNameForEvent,
     "ExecuteTransaction",
     localProvider,
@@ -107,7 +120,7 @@ export default function MultisigWallet({
   if (DEBUG) console.log("📟 executeTransactionEvents:", allExecuteTransactionEvents);
 
   const allOwnerEvents = useEventListener(
-    currentMultiSigAddress ? readContracts : null,
+    currentMultisigWalletAddress ? readContracts : null,
     contractNameForEvent,
     "Owner",
     localProvider,
@@ -120,19 +133,19 @@ export default function MultisigWallet({
 
   useEffect(() => {
     setExecuteTransactionEvents(
-      allExecuteTransactionEvents.filter(contractEvent => contractEvent.address === currentMultiSigAddress),
+      allExecuteTransactionEvents.filter(contractEvent => contractEvent.address === currentMultisigWalletAddress),
     );
-    setOwnerEvents(allOwnerEvents.filter(contractEvent => contractEvent.address === currentMultiSigAddress));
-  }, [allExecuteTransactionEvents, allOwnerEvents, currentMultiSigAddress]);
+    setOwnerEvents(allOwnerEvents.filter(contractEvent => contractEvent.address === currentMultisigWalletAddress));
+  }, [allExecuteTransactionEvents, allOwnerEvents, currentMultisigWalletAddress]);
 
   const handleMultiSigChange = value => {
     setContractNameForEvent(null);
-    setCurrentMultiSigAddress(value);
+    setCurrentMultisigWalletAddress(value);
   };
 
-  console.log("currentMultiSigAddress:", currentMultiSigAddress);
+  if (DEBUG) console.log("📟 currentMultisigWalletAddress:", currentMultisigWalletAddress);
 
-  const userHasMultiSigs = currentMultiSigAddress ? true : false;
+  const userHasMultisigWallets = currentMultisigWalletAddress ? true : false;
 
   return (
     <div style={{ padding: 16, margin: "auto", marginTop: 10 }}>
@@ -150,8 +163,8 @@ export default function MultisigWallet({
               isCreateModalVisible={isCreateModalVisible}
               setIsCreateModalVisible={setIsCreateModalVisible}
             />
-            <Select value={[currentMultiSigAddress]} style={{ width: 400 }} onChange={handleMultiSigChange}>
-              {multiSigs.map((address, index) => (
+            <Select value={[currentMultisigWalletAddress]} style={{ width: 400 }} onChange={handleMultiSigChange}>
+              {multisigWallets.map((address, index) => (
                 <Option key={index} value={address}>
                   {address}
                 </Option>
@@ -168,7 +181,7 @@ export default function MultisigWallet({
               <h2 style={{ marginTop: 16 }}>Multisig Wallet Balance:</h2>
               <div>
                 <Balance
-                  address={currentMultiSigAddress ? currentMultiSigAddress : ""}
+                  address={currentMultisigWalletAddress ? currentMultisigWalletAddress : ""}
                   provider={localProvider}
                   dollarMultiplier={price}
                   size={64}
@@ -176,7 +189,7 @@ export default function MultisigWallet({
               </div>
               <div>
                 <QR
-                  value={currentMultiSigAddress ? currentMultiSigAddress.toString() : ""}
+                  value={currentMultisigWalletAddress ? currentMultisigWalletAddress.toString() : ""}
                   size="180"
                   level="H"
                   includeMargin
@@ -186,14 +199,14 @@ export default function MultisigWallet({
               </div>
               <div>
                 <Address
-                  address={currentMultiSigAddress ? currentMultiSigAddress : ""}
+                  address={currentMultisigWalletAddress ? currentMultisigWalletAddress : ""}
                   ensProvider={mainnetProvider}
                   blockExplorer={blockExplorer}
                   fontSize={32}
                 />
               </div>
               <>
-                {userHasMultiSigs ? (
+                {userHasMultisigWallets ? (
                   <div>
                     <Owners
                       ownerEvents={ownerEvents}
@@ -227,7 +240,7 @@ export default function MultisigWallet({
             signaturesRequired={signaturesRequired}
           />
           <>
-            {userHasMultiSigs ? (
+            {userHasMultisigWallets ? (
               <Transactions
                 poolServerUrl={BACKEND_URL}
                 contractName={contractName}
