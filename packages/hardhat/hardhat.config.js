@@ -12,8 +12,6 @@ require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
-require("hardhat-abi-exporter");
-
 const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 
 /*
@@ -28,7 +26,9 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // Select the network you want to deploy to here:
 //
-const defaultNetwork = "localhost";
+// const defaultNetwork = "localhost";
+
+const defaultNetwork = "rinkeby";
 
 const mainnetGwei = 21;
 
@@ -276,14 +276,6 @@ module.exports = {
       mainnet: "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
       // add other network's API key here
     },
-  },
-  abiExporter: {
-    path: './data/abi',
-    runOnCompile: true,
-    clear: true,
-    flat: true,
-    spacing: 2,
-    pretty: true,
   },
 };
 
