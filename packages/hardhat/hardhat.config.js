@@ -28,7 +28,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 //
 // const defaultNetwork = "localhost";
 
-const defaultNetwork = "rinkeby";
+const defaultNetwork = "localhost";
 
 const mainnetGwei = 21;
 
